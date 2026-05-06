@@ -1,0 +1,322 @@
+﻿
+@model IEnumerable<InnoviWearStore.Models.Order>
+@{
+    ViewData["Title"] = "My Orders";
+
+    // Calculate stats safely
+    var totalOrders = Model?.Count() ?? 0;
+    var totalSpent = Model?.Sum(o => o.TotalAmount) ?? 0;
+    var completedOrders = Model?.Count(o => o.Status == "Completed") ?? 0;
+    var pendingOrders = Model?.Count(o => o.Status == "Pending") ?? 0;
+}
+
+<link rel="stylesheet" href="~/css/MyOrder.css" />
+
+<div class="orders-page">
+    <div class="orders-container">
+        <div class="page-header">
+            <h1><i class="fas fa-shopping-bag"></i> My Orders</h1>
+            <p>Track and manage all your orders in one place</p>
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="empty-orders">
+                <div class="empty-icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <h2 class="empty-title">No Orders Yet</h2>
+                <p class="empty-text">You haven't placed any orders yet. Start shopping to see your orders here!</p>
+                <a href="/" class="shop-now-btn">
+                    <i class="fas fa-shopping-cart"></i> Start Shopping
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Stats Section -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stat-value">@totalOrders</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-value">$@totalSpent.ToString("N0")</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-value">@completedOrders</div>
+                    <div class="stat-label">Completed</div>
+                </div> 
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value">@pendingOrders</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+            </div>
+
+            <!-- Orders List -->
+            @foreach (var order in Model.OrderByDescending(o => o.OrderDate))
+            {
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <span class="order-number">
+                                <i class="fas fa-hashtag"></i> ORDER-@order.Id.ToString("D6")
+                            </span>
+                            <span class="order-date">
+                                <i class="far fa-calendar-alt"></i>
+                                @order.OrderDate.ToString("MMM dd, yyyy")
+                            </span>
+                            <span class="order-badge">
+                                <i class="far fa-clock"></i>
+                                @order.OrderDate.ToString("hh:mm tt")
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                            <span class="order-status status-@order.Status.ToLower()">
+                                <i class="fas @(order.Status == "Completed" ? "fa-check-circle" : "fa-hourglass-half")"></i>
+                                @order.Status
+                            </span>
+                            <span class="order-total">
+                                $@order.TotalAmount.ToString("F2")
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="order-body">
+                        @if (order.OrderItems != null && order.OrderItems.Any())
+                        {
+                            <table class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th style="width: 100px;">Quantity</th>
+                                        <th style="width: 120px;">Unit Price</th>
+                                        <th style="width: 120px;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in order.OrderItems)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="product-cell">
+                                                    @if (item.Product?.ImageUrl != null)
+                                                    {
+                                                        <img src="@item.Product.ImageUrl" class="product-thumb" alt="@item.Product.Name" onerror="this.src='https://via.placeholder.com/50'">
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="product-thumb" style="background: #e2e8f0; display: flex; align-items: center; justify-content: center;">
+                                                            <i class="fas fa-image" style="color: #94a3b8;"></i>
+                                                        </div>
+                                                    }
+                                                    <div>
+                                                        <div class="product-name">@item.Product?.Name ?? "Product not available"</div>
+                                                        <div class="product-meta">
+                                                            @if (!string.IsNullOrEmpty(item.Product?.Category))
+                                                            {
+                                                                <span><i class="fas fa-tag"></i> @item.Product.Category</span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">@item.Quantity</td>
+                                            <td>$@item.UnitPrice.ToString("F2")</td>
+                                            <td class="text-primary fw-bold">$@((item.Quantity * item.UnitPrice).ToString("F2"))</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center">No items found for this order.</p>
+                        }
+
+                        @if (!string.IsNullOrEmpty(order.ShippingAddress))
+                        {
+                            <div class="shipping-info">
+                                <div class="shipping-title">
+                                    <i class="fas fa-truck"></i> Shipping Information
+                                </div>
+                                <div class="shipping-address">
+                                    <i class="fas fa-map-marker-alt"></i> @order.ShippingAddress
+                                </div>
+                                @if (!string.IsNullOrEmpty(order.PhoneNumber))
+                                {
+                                    <div class="shipping-address" style="margin-top: 5px;">
+                                        <i class="fas fa-phone"></i> @order.PhoneNumber
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(order.PaymentMethod))
+                                {
+                                    <div class="shipping-address" style="margin-top: 5px;">
+                                        <i class="fas fa-credit-card"></i> Paid via: @order.PaymentMethod
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="order-actions">
+                            <!-- Updated Reorder Button -->
+                            <button class="btn-reorder" onclick="reorderItems(@order.Id)">
+                                <i class="fas fa-redo"></i> Reorder
+                            </button>
+
+                            <button class="btn-track" onclick="trackOrder(@order.Id, '@order.Status')">
+                                <i class="fas fa-map-marked-alt"></i> Track Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script>
+    // Reorder function - adds all items from order to cart
+    function reorderItems(orderId) {
+        // Show loading state on button
+        const btn = event.target.closest('.btn-reorder');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding to Cart...';
+        btn.disabled = true;
+
+        // Make AJAX call to add items to cart
+        $.ajax({
+            url: '/Cart/ReorderOrder',
+            type: 'POST',
+            data: { orderId: orderId },
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    showNotification('success', response.message);
+                    // Redirect to cart after 1 second
+                    setTimeout(function() {
+                        window.location.href = '/Cart';
+                    }, 1000);
+                } else {
+                    // Show error message
+                    showNotification('error', response.message);
+                    // Reset button
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            },
+            error: function() {
+                showNotification('error', 'Failed to add items to cart. Please try again.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // Track order function
+    function trackOrder(orderId, status) {
+        if (status === 'Completed') {
+            alert(`✅ Order #ORDER-${orderId.toString().padStart(6, '0')}\n\n📦 Your order has been delivered!\n🎉 Thank you for shopping with Innovi.`);
+        } else if (status === 'Pending') {
+            alert(`🚚 Order #ORDER-${orderId.toString().padStart(6, '0')}\n\n📍 Your order is being processed.\n⏰ Estimated delivery: 3-5 business days.\n📧 You will receive updates via email.`);
+        } else {
+            alert(`📋 Order #ORDER-${orderId.toString().padStart(6, '0')}\n\n❌ Status: ${status}\n📞 Please contact support for more information.`);
+        }
+    }
+
+    // Show notification function
+    function showNotification(type, message) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `toast-notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        `;
+
+        // Add styles
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: ${type === 'success' ? '#10b981' : '#ef4444'};
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideInRight 0.3s ease;
+            font-weight: 500;
+        `;
+
+        document.body.appendChild(notification);
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Add animation keyframes
+    const style = document.createElement('style');
+    style.textContent = `
+        @@keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @@keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        .btn-reorder:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Add smooth scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+</script>

@@ -1,0 +1,234 @@
+﻿@model InnoviWearStore.Models.CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+    var governorates = InnoviWearStore.Helpers.EgyptAddressData.GetAllGovernorates();
+}
+
+<div class="container mt-4">
+    <h2>Checkout</h2>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Shipping Information</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="ProcessCheckout" method="post" id="checkoutForm">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <!-- Governorate Dropdown -->
+                        <div class="mb-3">
+                            <label asp-for="Governorate" class="form-label fw-bold"></label>
+                            <select asp-for="Governorate" class="form-select" id="governorateSelect" required>
+                                <option value="">-- Select Governorate --</option>
+                                @foreach (var gov in governorates)
+                                {
+                                    <option value="@gov.Governorate">@gov.Governorate</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Governorate" class="text-danger"></span>
+                        </div>
+
+                        <!-- City Dropdown -->
+                        <div class="mb-3">
+                            <label asp-for="City" class="form-label fw-bold"></label>
+                            <select asp-for="City" class="form-select" id="citySelect" required disabled>
+                                <option value="">-- Select Governorate First --</option>
+                            </select>
+                            <span asp-validation-for="City" class="text-danger"></span>
+                        </div>
+
+                        <!-- Area/District Dropdown -->
+                        <div class="mb-3">
+                            <label asp-for="District" class="form-label fw-bold"></label>
+                            <select asp-for="District" class="form-select" id="districtSelect" required disabled>
+                                <option value="">-- Select City First --</option>
+                            </select>
+                            <span asp-validation-for="District" class="text-danger"></span>
+                        </div>
+
+                        <!-- Street Address -->
+                        <div class="mb-3">
+                            <label asp-for="StreetAddress" class="form-label fw-bold"></label>
+                            <textarea asp-for="StreetAddress" class="form-control" rows="2" placeholder="Enter your street name, building name, etc." required></textarea>
+                            <span asp-validation-for="StreetAddress" class="text-danger"></span>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label fw-bold"></label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="010XXXXXXXX" required />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            <small class="text-muted">Please enter a valid Egyptian phone number (e.g., 01012345678)</small>
+                        </div>
+
+                        <!-- Payment Method - All options equally supported -->
+                        <div class="mb-3">
+                            <label asp-for="PaymentMethod" class="form-label fw-bold"></label>
+                            <select asp-for="PaymentMethod" class="form-select" required>
+                                <option value="">-- Select Payment Method --</option>
+                                <option value="Cash on Delivery">💵 Cash on Delivery</option>
+                                <option value="Credit Card">💳 Credit / Debit Card</option>
+                                <option value="Mobile Wallet">📱 Mobile Wallet</option>
+                            </select>
+                            <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                        </div>
+
+                        <!-- Simple info message for all payment methods -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Demo Checkout</strong><br>
+                            This is a demo store. No actual payment will be processed for any payment method.
+                            All orders are confirmed immediately for demonstration purposes.
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 btn-lg">
+                            <i class="fas fa-check-circle"></i> Place Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <strong>$@Model.TotalAmount.ToString("F2")</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping:</span>
+                        <strong>Free</strong>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Total:</span>
+                        <strong class="text-primary fs-4">$@Model.TotalAmount.ToString("F2")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Info Card -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6><i class="fas fa-truck text-primary"></i> Delivery Information</h6>
+                    <small class="text-muted">
+                        • Free delivery on all orders<br>
+                        • Estimated delivery: 2-5 business days<br>
+                        • All payment methods accepted
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Egyptian Governorates Data with Cities and Areas
+            const addressData = {
+                @foreach (var gov in governorates)
+                {
+                        <text>
+                        "@gov.Governorate": {
+                            cities: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(gov.Cities)),
+                            areas: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(gov.Districts))
+                        },
+                        </text>
+                }
+            };
+
+            // When Governorate changes
+            $('#governorateSelect').change(function() {
+                const governorate = $(this).val();
+                const citySelect = $('#citySelect');
+                const districtSelect = $('#districtSelect');
+
+                // Reset and disable city and district
+                citySelect.empty().prop('disabled', true);
+                districtSelect.empty().prop('disabled', true);
+                districtSelect.append($('<option>', { value: '', text: '-- Select City First --' }));
+
+                if (governorate && addressData[governorate]) {
+                    // Enable city select and populate cities
+                    citySelect.prop('disabled', false);
+                    citySelect.append($('<option>', { value: '', text: '-- Select City --' }));
+
+                    $.each(addressData[governorate].cities, function(index, city) {
+                        citySelect.append($('<option>', { value: city, text: city }));
+                    });
+                } else {
+                    citySelect.append($('<option>', { value: '', text: '-- Select Governorate First --' }));
+                }
+            });
+
+            // When City changes
+            $('#citySelect').change(function() {
+                const governorate = $('#governorateSelect').val();
+                const districtSelect = $('#districtSelect');
+
+                // Reset district
+                districtSelect.empty().prop('disabled', true);
+
+                if (governorate && addressData[governorate]) {
+                    // Enable district select and populate areas
+                    districtSelect.prop('disabled', false);
+                    districtSelect.append($('<option>', { value: '', text: '-- Select Area / District --' }));
+
+                    $.each(addressData[governorate].areas, function(index, area) {
+                        districtSelect.append($('<option>', { value: area, text: area }));
+                    });
+                } else {
+                    districtSelect.append($('<option>', { value: '', text: '-- Select City First --' }));
+                }
+            });
+
+            // Phone number validation for Egypt
+            $('#PhoneNumber').on('input', function() {
+                let phone = $(this).val();
+                const egyptRegex = /^01[0125][0-9]{8}$/;
+                if (phone && !egyptRegex.test(phone)) {
+                    $(this).addClass('is-invalid');
+                    $(this).siblings('.invalid-feedback').remove();
+                    $(this).after('<div class="invalid-feedback">Please enter a valid Egyptian phone number (e.g., 01012345678)</div>');
+                } else if (phone && egyptRegex.test(phone)) {
+                    $(this).removeClass('is-invalid');
+                    $(this).siblings('.invalid-feedback').remove();
+                }
+            });
+
+            // Form submission validation
+            $('#checkoutForm').on('submit', function(e) {
+                // Validate phone number
+                const phone = $('#PhoneNumber').val();
+                const egyptRegex = /^01[0125][0-9]{8}$/;
+                if (!egyptRegex.test(phone)) {
+                    e.preventDefault();
+                    alert('Please enter a valid Egyptian phone number (e.g., 01012345678)');
+                    $('#PhoneNumber').focus();
+                    return false;
+                }
+
+                // Validate payment method
+                const paymentMethod = $('#PaymentMethod').val();
+                if (!paymentMethod) {
+                    e.preventDefault();
+                    alert('Please select a payment method');
+                    $('#PaymentMethod').focus();
+                    return false;
+                }
+
+                // All validations passed
+                return true;
+            });
+        });
+    </script>
+}

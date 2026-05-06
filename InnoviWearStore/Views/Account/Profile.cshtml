@@ -1,0 +1,133 @@
+﻿@model InnoviWearStore.Models.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<link rel="stylesheet" href="~/css/profile.css" />
+
+<div class="profile-page">
+    <div class="profile-container">
+        <div class="page-header">
+            <h1><i class="fas fa-user-circle"></i> My Profile</h1>
+            <p>Manage your personal information and account settings</p>
+        </div>
+
+        <div class="profile-layout">
+            <!-- Sidebar -->
+            <div class="profile-sidebar">
+                <div class="profile-avatar">
+                    <div class="avatar-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3 class="profile-name">@Model.FirstName @Model.LastName</h3>
+                    <p class="profile-email">@Model.Email</p>
+                </div>
+
+                <div class="sidebar-menu">
+                    <a href="/Account/Profile" class="menu-item active">
+                        <i class="fas fa-user"></i>
+                        <span>Profile Information</span>
+                    </a>
+                    <a href="/Account/MyOrders" class="menu-item">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span>My Orders</span>
+                    </a>
+                   
+                    <a href="/Cart" class="menu-item">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Shopping Cart</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="profile-main">
+                <h2 class="main-title">Profile Information</h2>
+                <p class="main-subtitle">Update your personal details here</p>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>@TempData["Success"]</span>
+                        <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                }
+
+                <form asp-action="UpdateProfile" method="post" class="profile-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-user"></i> First Name
+                            </label>
+                            <input asp-for="FirstName" class="form-control" required />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-user"></i> Last Name
+                            </label>
+                            <input asp-for="LastName" class="form-control" required />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <input asp-for="Email" class="form-control readonly" readonly />
+                            <small class="text-muted">Email cannot be changed</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar"></i> Date of Birth
+                            </label>
+                            <input asp-for="DateOfBirth" class="form-control" type="date" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label">
+                                <i class="fas fa-map-marker-alt"></i> Address
+                            </label>
+                            <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter your full address"></textarea>
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-update">
+                            <i class="fas fa-save"></i> Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+
+        // Form validation
+        document.querySelector('form')?.addEventListener('submit', function(e) {
+            const firstName = document.querySelector('[name="FirstName"]')?.value;
+            const lastName = document.querySelector('[name="LastName"]')?.value;
+
+            if (!firstName || !lastName) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+            }
+        });
+    </script>
+}

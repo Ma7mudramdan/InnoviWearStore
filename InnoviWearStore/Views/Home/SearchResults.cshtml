@@ -1,0 +1,145 @@
+﻿@model IEnumerable<InnoviWearStore.Models.Product>
+@{
+    ViewData["Title"] = $"Search Results for '{ViewBag.SearchTerm}'";
+}
+
+<style>
+    .search-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 60px 0;
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+    }
+
+        .search-header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .search-header p {
+            opacity: 0.9;
+        }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 30px;
+        padding: 20px 0 50px;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+    .product-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+    }
+
+    .product-info {
+        padding: 20px;
+    }
+
+    .product-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #2d3748;
+    }
+
+    .product-category {
+        color: #667eea;
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+    }
+
+    .product-price {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .btn-add {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        width: 100%;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 60px;
+        background: white;
+        border-radius: 20px;
+    }
+
+        .no-results i {
+            font-size: 4rem;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+</style>
+
+<div class="search-header">
+    <div class="container">
+        <h1>Search Results</h1>
+        <p>Showing results for: "<strong>@ViewBag.SearchTerm</strong>"</p>
+        <p>Found @Model.Count() product(s)</p>
+    </div>
+</div>
+
+<div class="container">
+    @if (!Model.Any())
+    {
+        <div class="no-results">
+            <i class="fas fa-search"></i>
+            <h3>No products found</h3>
+            <p>We couldn't find any products matching "@ViewBag.SearchTerm"</p>
+            <a href="/" class="btn-shop">Browse All Products</a>
+        </div>
+    }
+    else
+    {
+        <div class="products-grid">
+            @foreach (var product in Model)
+            {
+                <div class="product-card">
+                    <a href="/Home/ProductDetails/@product.Id" style="text-decoration: none; color: inherit;">
+                        <img src="@product.ImageUrl" class="product-image" alt="@product.Name" onerror="this.src='https://via.placeholder.com/300x250?text=@product.Name'">
+                        <div class="product-info">
+                            <h3 class="product-title">@product.Name</h3>
+                            <p class="product-category">@product.Category</p>
+                            <p class="product-price">$@product.Price.ToString("F2")</p>
+                        </div>
+                    </a>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="product-info pt-0">
+                            <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <input type="hidden" name="quantity" value="1" />
+                                <button type="submit" class="btn-add">Add to Cart</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,205 @@
+﻿@model IEnumerable<InnoviWearStore.Models.Product>
+@{
+    ViewData["Title"] = "Home - Innovi Wear Store";
+}
+
+<style>
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 30px;
+        padding: 20px 0;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+    .product-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+    }
+
+    .product-info {
+        padding: 20px;
+    }
+
+    .product-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #333;
+    }
+
+    .product-category {
+        color: #667eea;
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+    }
+
+    .product-price {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .add-to-cart {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+        .add-to-cart:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 80px 0;
+        text-align: center;
+        color: white;
+        margin-bottom: 50px;
+        border-radius: 0 0 30px 30px;
+    }
+
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .hero-section p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+    .shop-now-btn {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s;
+    }
+
+        .shop-now-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+    .section-title {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 40px;
+        position: relative;
+    }
+
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+    @@media (max-width: 768px) {
+        .products-grid
+
+    {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+
+    .product-image {
+        height: 200px;
+    }
+
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <h1>Welcome to Innovi</h1>
+        <p>Discover the latest trends in fashion</p>
+        <a href="/Home/Category" class="shop-now-btn">Shop Now</a>
+    </div>
+</div>
+
+<!-- Products Section -->
+<div class="container">
+    <h2 class="section-title">All Products</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            <h4>No products available</h4>
+            <p>Please add products to your database</p>
+        </div>
+    }
+    else
+    {
+        <div class="products-grid">
+            @foreach (var product in Model)
+            {
+                <div class="product-card">
+                    <a href="/Home/ProductDetails/@product.Id" style="text-decoration: none;">
+                        <img src="@product.ImageUrl" class="product-image" alt="@product.Name" onerror="this.src='https://via.placeholder.com/300x250?text=@product.Name'">
+                        <div class="product-info">
+                            <h3 class="product-title">@product.Name</h3>
+                            <p class="product-category">@product.Category</p>
+                            <p class="product-price">$@product.Price.ToString("F2")</p>
+                        </div>
+                    </a>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="product-info pt-0">
+                            <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <input type="hidden" name="quantity" value="1" />
+                                <button type="submit" class="add-to-cart">
+                                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="product-info pt-0">
+                            <a href="/Account/Login" class="add-to-cart" style="display: block; text-align: center; text-decoration: none;">
+                                <i class="fas fa-lock"></i> Login to Buy
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,286 @@
+﻿@model IEnumerable<InnoviWearStore.Models.CartItem>
+@{
+    ViewData["Title"] = "Shopping Cart";
+    decimal total = ViewBag.Total;
+}
+
+<link rel="stylesheet" href="~/css/cart.css" />
+
+<div class="cart-page">
+    <div class="cart-container">
+        <div class="cart-title">
+            <h1><i class="fas fa-shopping-bag"></i> Shopping Cart</h1>
+            <p>Review and manage your items before checkout</p>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert-custom alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>@TempData["Error"]</span>
+            </div>
+        }
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert-custom alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span>@TempData["Success"]</span>
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="empty-cart">
+                <div class="empty-cart-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <h2>Your cart is empty</h2>
+                <p>Looks like you haven't added any items to your cart yet</p>
+                <a href="/" class="shop-now-btn">Start Shopping</a>
+            </div>
+        }
+        else
+        {
+            <div class="cart-layout">
+                <!-- Cart Items -->
+                <div class="cart-items-section">
+                    <div class="cart-header">
+                        <span>Product</span>
+                        <span>Price</span>
+                        <span>Quantity</span>
+                        <span>Total</span>
+                    </div>
+
+                    @foreach (var item in Model)
+                    {
+                        var maxStock = item.Product?.StockQuantity ?? 0;
+                        <div class="cart-item" id="cart-item-@item.Id" data-max-stock="@maxStock">
+                            <div class="cart-item-content">
+                                <!-- Product Info -->
+                                <div class="product-info-cart">
+                                    <img src="@item.Product?.ImageUrl" class="product-image-cart" alt="@item.Product?.Name" onerror="this.src='https://via.placeholder.com/100'">
+                                    <div class="product-details-cart">
+                                        <h3>@item.Product?.Name</h3>
+                                        <div class="product-meta-cart">
+                                            @if (!string.IsNullOrEmpty(item.Product?.Category))
+                                            {
+                                                <span><i class="fas fa-tag"></i> @item.Product.Category</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.Product?.Size))
+                                            {
+                                                <span><i class="fas fa-ruler"></i> Size: @item.Product.Size</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.Product?.Color))
+                                            {
+                                                <span><i class="fas fa-palette"></i> @item.Product.Color</span>
+                                            }
+                                        </div>
+                                        <div class="stock-status">
+                                            @if (maxStock > 10)
+                                            {
+                                                <span class="stock-in"><i class="fas fa-check-circle"></i> In Stock (@maxStock available)</span>
+                                            }
+                                            else if (maxStock > 0 && maxStock <= 10)
+                                            {
+                                                <span class="stock-low"><i class="fas fa-exclamation-triangle"></i> Only @maxStock left!</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="stock-out"><i class="fas fa-times-circle"></i> Out of Stock</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Price -->
+                                <div class="item-price-cart">
+                                    $@item.Product?.Price.ToString("F2")
+                                </div>
+
+                                <!-- Quantity Controls -->
+                                <div>
+                                    <div class="quantity-controls">
+                                        <button class="qty-btn qty-minus" data-id="@item.Id" @(maxStock <= 0 ? "disabled" : "")>
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" class="qty-input" value="@item.Quantity"
+                                               min="1" max="@maxStock" data-id="@item.Id"
+                                               @(maxStock <= 0 ? "disabled" : "")>
+                                        <button class="qty-btn qty-plus" data-id="@item.Id" @(maxStock <= 0 ? "disabled" : "")>
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Total & Remove -->
+                                <div style="text-align: right;">
+                                    <div class="item-total-cart" id="total-@item.Id">
+                                        $@((item.Quantity * item.Product!.Price).ToString("F2"))
+                                    </div>
+                                    <button class="remove-item-btn" data-id="@item.Id" title="Remove item">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h3 class="summary-title">Order Summary</h3>
+
+                    <div class="summary-row">
+                        <span class="summary-label">Subtotal</span>
+                        <span class="summary-value" id="subtotal">$@total.ToString("F2")</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="summary-label">Shipping</span>
+                        <span class="summary-value">Free</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="summary-label">Tax</span>
+                        <span class="summary-value">$0.00</span>
+                    </div>
+
+                    <div class="summary-row summary-total">
+                        <span class="summary-label">Total</span>
+                        <span class="summary-value" id="cartTotal">$@total.ToString("F2")</span>
+                    </div>
+
+                    <!-- FIXED: Use anchor tag instead of button -->
+                    <a href="/Cart/Checkout" class="checkout-btn">
+                        <i class="fas fa-lock"></i> Proceed to Checkout
+                    </a>
+
+                    <a href="/" class="continue-shopping">
+                        <i class="fas fa-arrow-left"></i> Continue Shopping
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Calculate and update totals
+        function updateCartTotal() {
+            let subtotal = 0;
+            $('.item-total-cart').each(function() {
+                let value = parseFloat($(this).text().replace('$', ''));
+                if (!isNaN(value)) subtotal += value;
+            });
+
+            $('#subtotal').text('$' + subtotal.toFixed(2));
+            $('#cartTotal').text('$' + subtotal.toFixed(2));
+            return subtotal;
+        }
+
+        function updateItemTotal(row, price, quantity) {
+            const total = price * quantity;
+            row.find('.item-total-cart').text('$' + total.toFixed(2));
+            updateCartTotal();
+        }
+
+        function updateServer(itemId, quantity, maxStock) {
+            if (quantity > maxStock) {
+                alert(`Only ${maxStock} items available!`);
+                return false;
+            }
+
+            $.ajax({
+                url: '/Cart/UpdateQuantityAjax',
+                type: 'POST',
+                data: { id: itemId, quantity: quantity },
+                success: function(response) {
+                    if (!response.success) {
+                        alert(response.message || 'Failed to update');
+                        location.reload();
+                    }
+                }
+            });
+            return true;
+        }
+
+        function removeItem(itemId) {
+            if (!confirm('Remove this item from your cart?')) return;
+
+            $.ajax({
+                url: '/Cart/RemoveFromCartAjax',
+                type: 'POST',
+                data: { id: itemId },
+                success: function(response) {
+                    if (response.success) {
+                        $('#cart-item-' + itemId).fadeOut(300, function() {
+                            $(this).remove();
+                            updateCartTotal();
+                            if ($('.cart-item').length === 0) location.reload();
+                        });
+                    }
+                }
+            });
+        }
+
+        // Plus button
+        $(document).on('click', '.qty-plus', function() {
+            const itemId = $(this).data('id');
+            const row = $(this).closest('.cart-item');
+            const input = row.find('.qty-input');
+            const maxStock = parseInt(row.data('max-stock'));
+            let newVal = parseInt(input.val()) + 1;
+
+            if (newVal <= maxStock) {
+                input.val(newVal);
+                const price = parseFloat(row.find('.item-price-cart').text().replace('$', ''));
+                updateItemTotal(row, price, newVal);
+                updateServer(itemId, newVal, maxStock);
+            } else {
+                alert(`Maximum ${maxStock} items available!`);
+            }
+        });
+
+        // Minus button
+        $(document).on('click', '.qty-minus', function() {
+            const itemId = $(this).data('id');
+            const row = $(this).closest('.cart-item');
+            const input = row.find('.qty-input');
+            let newVal = parseInt(input.val()) - 1;
+
+            if (newVal >= 1) {
+                input.val(newVal);
+                const price = parseFloat(row.find('.item-price-cart').text().replace('$', ''));
+                updateItemTotal(row, price, newVal);
+                updateServer(itemId, newVal, row.data('max-stock'));
+            } else if (newVal === 0) {
+                removeItem(itemId);
+            }
+        });
+
+        // Manual input change
+        $(document).on('change', '.qty-input', function() {
+            const itemId = $(this).data('id');
+            const row = $(this).closest('.cart-item');
+            const maxStock = parseInt(row.data('max-stock'));
+            let newVal = parseInt($(this).val());
+
+            if (isNaN(newVal) || newVal < 1) newVal = 1;
+            if (newVal > maxStock) {
+                alert(`Maximum ${maxStock} items available!`);
+                newVal = maxStock;
+                $(this).val(newVal);
+            }
+
+            const price = parseFloat(row.find('.item-price-cart').text().replace('$', ''));
+            updateItemTotal(row, price, newVal);
+            updateServer(itemId, newVal, maxStock);
+        });
+
+        // Remove button
+        $(document).on('click', '.remove-item-btn', function() {
+            removeItem($(this).data('id'));
+        });
+    });
+</script>
