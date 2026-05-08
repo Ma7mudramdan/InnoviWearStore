@@ -9,6 +9,7 @@ namespace InnoviWearStore.Models
         public string? Address { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public bool IsAdmin { get; set; } = false;
 
         // Navigation properties
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

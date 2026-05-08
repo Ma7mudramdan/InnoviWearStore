@@ -47,9 +47,11 @@ namespace InnoviWearStore
             app.UseAuthentication();
             app.UseAuthorization();
 
+            DbSeeder.SeedAdminUserAsync(app.Services);
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
+
 
             app.Run();
         }

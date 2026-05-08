@@ -1,10 +1,13 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using InnoviWearStore.Data;
 using InnoviWearStore.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace InnoviWearStore.Controllers
 {
+
+    
     public class HomeController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -16,6 +19,10 @@ namespace InnoviWearStore.Controllers
 
         public async Task<IActionResult> Index()
         {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
             var products = await _context.Products.ToListAsync();
             return View(products);
         }
@@ -23,6 +30,11 @@ namespace InnoviWearStore.Controllers
         // Add this action to your HomeController for server-side search
         public async Task<IActionResult> Search(string searchTerm, string category)
         {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+
             var query = _context.Products.AsQueryable();
 
             if (!string.IsNullOrEmpty(searchTerm))
@@ -45,6 +57,11 @@ namespace InnoviWearStore.Controllers
 
         public async Task<IActionResult> Category(string category)
         {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+
             if (string.IsNullOrEmpty(category))
             {
                 var allCategories = await _context.Products
@@ -66,6 +83,8 @@ namespace InnoviWearStore.Controllers
         // Add this action to your existing HomeController
         public async Task<IActionResult> ProductDetails(int id)
         {
+           
+
             var product = await _context.Products
                 .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -86,6 +105,7 @@ namespace InnoviWearStore.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
+
             var products = await _context.Products
                 .Select(p => new {
                     id = p.Id,

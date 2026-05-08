@@ -7,7 +7,8 @@ using InnoviWearStore.Models;
 
 namespace InnoviWearStore.Controllers
 {
-    [Authorize]
+   
+
     public class CartController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,6 +22,11 @@ namespace InnoviWearStore.Controllers
 
         public async Task<IActionResult> Index()
         {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+
             var userId = _userManager.GetUserId(User);
             var cartItems = await _context.CartItems
                 .Include(c => c.Product)
@@ -189,6 +195,11 @@ namespace InnoviWearStore.Controllers
 
         public async Task<IActionResult> Checkout()
         {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+
             var userId = _userManager.GetUserId(User);
             var cartItems = await _context.CartItems
                 .Include(c => c.Product)
@@ -229,6 +240,10 @@ namespace InnoviWearStore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ProcessCheckout(CheckoutViewModel model)
         {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
             if (ModelState.IsValid)
             {
                 var userId = _userManager.GetUserId(User);
@@ -257,7 +272,7 @@ namespace InnoviWearStore.Controllers
                     {
                         UserId = userId,
                         OrderDate = DateTime.Now,
-                        Status = "Completed",
+                        Status = "Pending",
                         TotalAmount = cartItems.Sum(c => c.Quantity * c.Product!.Price),
                         ShippingAddress = fullAddress,
                         PhoneNumber = model.PhoneNumber,
@@ -314,6 +329,10 @@ namespace InnoviWearStore.Controllers
 
         public async Task<IActionResult> OrderConfirmation(int id)
         {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
             var userId = _userManager.GetUserId(User);
             var order = await _context.Orders
                 .Include(o => o.OrderItems)

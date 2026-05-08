@@ -1,0 +1,125 @@
+﻿@model IEnumerable<InnoviWearStore.Models.Order>
+@{
+    ViewData["Title"] = "Orders Management";
+    Layout = "_AdminLayout";
+}
+
+<link rel="stylesheet" href="~/css/Orders.css" />
+
+<h3 class="mb-4">
+    <i class="fas fa-shopping-cart"></i> Orders Management
+</h3>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5 bg-white rounded-3">
+        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No orders found.</p>
+    </div>
+}
+else
+{
+    foreach (var order in Model)
+    {
+        <div class="order-card">
+            <div class="order-header">
+                <div>
+                    <strong><i class="fas fa-hashtag"></i> ORDER-#@order.Id</strong>
+                    <span class="ms-3"><i class="far fa-calendar-alt"></i> @order.OrderDate.ToString("MMM dd, yyyy hh:mm tt")</span>
+                </div>
+                <div>
+                    <span>Total: <strong>$@order.TotalAmount.ToString("F2")</strong></span>
+                </div>
+            </div>
+
+            <div class="order-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-user"></i> Customer:</strong> @order.User?.Email</p>
+                        <p><strong><i class="fas fa-map-marker-alt"></i> Shipping Address:</strong> @order.ShippingAddress</p>
+                        <p><strong><i class="fas fa-phone"></i> Phone:</strong> @order.PhoneNumber</p>
+                        <p><strong><i class="fas fa-credit-card"></i> Payment:</strong> @order.PaymentMethod</p>
+                    </div>
+                    <div class="col-md-6">
+                        <form asp-action="UpdateOrderStatus" method="post" class="d-flex gap-2 align-items-center">
+                            <input type="hidden" name="orderId" value="@order.Id" />
+                            <label class="me-2"><strong>Status:</strong></label>
+                            <select name="status" class="status-select form-select w-auto">
+                                <option value="Pending" selected="@(order.Status == "Pending")">📋 Pending</option>
+                                <option value="Processing" selected="@(order.Status == "Processing")">⚙️ Processing</option>
+                                <option value="Shipped" selected="@(order.Status == "Shipped")">🚚 Shipped</option>
+                                <option value="Delivered" selected="@(order.Status == "Delivered")">📦 Delivered</option>
+                                <option value="Completed" selected="@(order.Status == "Completed")">✅ Completed</option>
+                                <option value="Cancelled" selected="@(order.Status == "Cancelled")">❌ Cancelled</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="fas fa-save"></i> Update
+                            </button>
+                        </form>
+
+                        <!-- Current Status Badge -->
+                        <div class="mt-3">
+                            <span class="badge-status badge-@order.Status.ToLower()">
+                                <i class="fas @(order.Status == "Completed" ? "fa-check-circle" : "fa-hourglass-half")"></i>
+                                Current: @order.Status
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                @if (order.OrderItems != null && order.OrderItems.Any())
+                {
+                    <hr />
+                    <h6 class="mb-3"><i class="fas fa-box"></i> Order Items</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in order.OrderItems)
+                                {
+                                    
+                                    <tr>
+                                        <td>
+                                         <a href="/Home/ProductDetails/@item.ProductId" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px;">
+                                            @if (!string.IsNullOrEmpty(item.Product?.ImageUrl))
+                                            {
+                                                <img src="@item.Product.ImageUrl" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px; margin-right: 10px;" />
+                                            }
+                                            @item.Product?.Name
+                                        </a>
+                                        </td>
+                                        <td>@item.Quantity</td>
+                                        <td>$@item.UnitPrice.ToString("F2")</td>
+                                        <td class="fw-bold">$@((item.Quantity * item.UnitPrice).ToString("F2"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <td colspan="3" class="text-end fw-bold">Grand Total:</td>
+                                    <td class="fw-bold text-primary">$@order.TotalAmount.ToString("F2")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+@section Scripts {
+    <script>
+        // Auto-hide alerts
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 3000);
+    </script>
+}

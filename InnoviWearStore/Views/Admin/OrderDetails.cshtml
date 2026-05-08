@@ -1,0 +1,258 @@
+﻿@model InnoviWearStore.Models.Order
+@{
+    ViewData["Title"] = $"Order Details - #{Model.Id}";
+    Layout = "_AdminLayout";
+}
+
+<style>
+    .order-details-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .order-header-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #475569;
+        width: 150px;
+    }
+    
+    .info-value {
+        color: #1e293b;
+        flex: 1;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-processing { background: #dbeafe; color: #1e40af; }
+    .status-shipped { background: #e0e7ff; color: #3730a3; }
+    .status-delivered { background: #d1fae5; color: #065f46; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    
+    .items-table th,
+    .items-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .items-table th {
+        background: #f8fafc;
+        font-weight: 600;
+    }
+    
+    .product-cell {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .product-thumb {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    
+    .btn-back {
+        background: #64748b;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    
+    .btn-back:hover {
+        background: #475569;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 20px 0 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+</style>
+
+<div class="order-details-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>
+            <i class="fas fa-shopping-cart"></i> Order Details
+        </h3>
+        <a href="/Admin/Orders" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+    
+    <!-- Order Header -->
+    <div class="order-header-info">
+        <div class="info-row">
+            <span><strong>Order #:</strong> @Model.Id</span>
+            <span><strong>Date:</strong> @Model.OrderDate.ToString("MMMM dd, yyyy hh:mm tt")</span>
+            <span>
+                <strong>Status:</strong> 
+                <span class="status-badge status-@Model.Status.ToLower()">@Model.Status</span>
+            </span>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Customer Information -->
+        <div class="col-md-6">
+            <div class="section-title">
+                <i class="fas fa-user"></i> Customer Information
+            </div>
+            <div class="mb-3">
+                <div class="info-row">
+                    <span class="info-label">Name:</span>
+                    <span class="info-value">@Model.User?.FirstName @Model.User?.LastName</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">@Model.User?.Email</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Phone:</span>
+                    <span class="info-value">@Model.PhoneNumber</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Shipping Information -->
+        <div class="col-md-6">
+            <div class="section-title">
+                <i class="fas fa-truck"></i> Shipping Information
+            </div>
+            <div class="mb-3">
+                <div class="info-row">
+                    <span class="info-label">Address:</span>
+                    <span class="info-value">@Model.ShippingAddress</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Payment Method:</span>
+                    <span class="info-value">@Model.PaymentMethod</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Items -->
+    <div class="section-title">
+        <i class="fas fa-box"></i> Order Items
+    </div>
+    
+    @if (Model.OrderItems != null && Model.OrderItems.Any())
+    {
+        <div class="table-responsive">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <tr>
+                            <td>
+                                <div class="product-cell">
+                                    @if (item.Product?.ImageUrl != null)
+                                    {
+                                        <img src="@item.Product.ImageUrl" class="product-thumb" onerror="this.src='https://via.placeholder.com/50'">
+                                    }
+                                    <div>
+                                        <strong>@item.Product?.Name</strong>
+                                        <br>
+                                        <small class="text-muted">@item.Product?.Category</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>$@item.UnitPrice.ToString("F2")</td>
+                            <td>@item.Quantity</td>
+                            <td class="fw-bold">$@((item.Quantity * item.UnitPrice).ToString("F2"))</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-light">
+                        <td colspan="3" class="text-end fw-bold">Subtotal:</td>
+                        <td>$@Model.OrderItems.Sum(i => i.Quantity * i.UnitPrice).ToString("F2")</td>
+                    </tr>
+                    <tr class="table-light">
+                        <td colspan="3" class="text-end fw-bold">Shipping:</td>
+                        <td>Free</td>
+                    </tr>
+                    <tr class="table-light">
+                        <td colspan="3" class="text-end fw-bold">Total:</td>
+                        <td class="fw-bold text-primary fs-5">$@Model.TotalAmount.ToString("F2")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted text-center py-4">No items found for this order.</p>
+    }
+    
+    <!-- Update Status Section -->
+    <div class="section-title">
+        <i class="fas fa-edit"></i> Update Order Status
+    </div>
+    
+    <form asp-action="UpdateOrderStatus" method="post" class="d-flex gap-3 align-items-center">
+        <input type="hidden" name="orderId" value="@Model.Id" />
+        <select name="status" class="status-select form-select w-auto">
+            <option value="Pending" selected="@(Model.Status == "Pending")">📋 Pending</option>
+            <option value="Processing" selected="@(Model.Status == "Processing")">⚙️ Processing</option>
+            <option value="Shipped" selected="@(Model.Status == "Shipped")">🚚 Shipped</option>
+            <option value="Delivered" selected="@(Model.Status == "Delivered")">📦 Delivered</option>
+            <option value="Completed" selected="@(Model.Status == "Completed")">✅ Completed</option>
+            <option value="Cancelled" selected="@(Model.Status == "Cancelled")">❌ Cancelled</option>
+        </select>t>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Update Status
+        </button>
+    </form>
+    
+    <div class="text-end">
+        <a href="/Admin/Orders" class="btn-back btn">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+</div>

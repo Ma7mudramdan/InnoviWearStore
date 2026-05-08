@@ -2,7 +2,47 @@
 @{
     ViewData["Title"] = "Order Confirmation";
 }
+<style>
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
 
+    .status-pending {
+        background: #f59e0b;
+        color: #ffffff;
+    }
+
+    .status-processing {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .status-shipped {
+        background: #8b5cf6;
+        color: white;
+    }
+
+    .status-delivered {
+        background: #06b6d4;
+        color: white;
+    }
+
+    .status-completed {
+        background: #10b981;
+        color: white;
+    }
+
+    .status-cancelled {
+        background: #ef4444;
+        color: white;
+    }
+</style>
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
@@ -15,7 +55,7 @@
                     <h5>Order #@Model.Id</h5>
                     <p>Order Date: @Model.OrderDate.ToString("MMMM dd, yyyy hh:mm tt")</p>
                     <p>Total Amount: <strong>$@Model.TotalAmount</strong></p>
-                    <p>Status: <span class="badge bg-success">@Model.Status</span></p>
+                    <p>Status: <span class="status-badge status-@Model.Status.ToLower()"><i class="fas fa-hourglass-half"></i> @Model.Status</span></p>
 
                     <div class="mt-4">
                         <a href="/" class="btn btn-primary">Continue Shopping</a>

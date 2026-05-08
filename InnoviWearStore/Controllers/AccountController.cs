@@ -4,9 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using InnoviWearStore.Models;
 using InnoviWearStore.Data;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace InnoviWearStore.Controllers
 {
+    
     public class AccountController : Controller
     {
         private readonly UserManager<User> _userManager;
@@ -69,6 +71,7 @@ namespace InnoviWearStore.Controllers
             return View();
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
@@ -81,6 +84,14 @@ namespace InnoviWearStore.Controllers
 
                 if (result.Succeeded)
                 {
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+
+                    // ✅ If user is Admin, redirect to Admin Products page
+                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        return RedirectToAction("Products", "Admin");
+                    }
+
                     return RedirectToLocal(returnUrl);
                 }
 
@@ -89,7 +100,6 @@ namespace InnoviWearStore.Controllers
 
             return View(model);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
@@ -101,6 +111,11 @@ namespace InnoviWearStore.Controllers
         [HttpGet]
         public async Task<IActionResult> Profile()
         {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -155,11 +170,17 @@ namespace InnoviWearStore.Controllers
 
         public async Task<IActionResult> MyOrders()
         {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return Challenge();
             }
+
 
             var orders = await _context.Orders
                 .Include(o => o.OrderItems)
@@ -167,6 +188,8 @@ namespace InnoviWearStore.Controllers
                 .Where(o => o.UserId == user.Id)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
+
+            orders.RemoveAll(o => o.Status == "Cancelled");
 
             return View(orders);
         }
@@ -182,6 +205,12 @@ namespace InnoviWearStore.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
+        }
+
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
     }
 }

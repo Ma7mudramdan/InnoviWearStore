@@ -1,0 +1,78 @@
+﻿
+.btn-add {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+}
+
+.btn-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+}
+
+.product-table {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.product-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit, .btn-delete {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.3s;
+}
+
+.btn-edit {
+    background: #3b82f6;
+    color: white;
+    border: none;
+}
+
+    .btn-edit:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+    }
+
+.btn-delete {
+    background: #ef4444;
+    color: white;
+    border: none;
+}
+
+    .btn-delete:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+    }
+
+.stock-high {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.stock-low {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.stock-out {
+    color: #ef4444;
+    font-weight: 600;
+}
